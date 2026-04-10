@@ -369,6 +369,95 @@
       border-radius: 50%; animation: spin 0.7s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── CALENDAR ── */
+    .cal-wrap { padding: 14px; }
+    .cal-nav {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
+    }
+    .cal-nav-title { font-size: 1rem; font-weight: 700; }
+    .cal-nav-btn {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text); font-size: 1rem;
+      padding: 7px 14px; cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .cal-nav-btn:active { background: var(--surface2); }
+    .cal-nav-btn:disabled { opacity: 0.3; cursor: default; }
+    .cal-dow-row {
+      display: grid; grid-template-columns: repeat(7,1fr); gap: 3px; margin-bottom: 3px;
+    }
+    .cal-dow {
+      text-align: center; font-size: 0.6rem; font-weight: 700;
+      color: var(--text-muted); text-transform: uppercase; padding: 4px 0;
+    }
+    .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 3px; }
+
+    .cal-day {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 6px 3px;
+      min-height: 54px; display: flex; flex-direction: column;
+      align-items: center; gap: 3px; position: relative;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .cal-day.tappable { cursor: pointer; }
+    .cal-day.tappable:active { background: var(--surface2); }
+    .cal-day.today { border-color: var(--accent); background: var(--accent-dim); }
+    .cal-day.other-month { opacity: 0.22; pointer-events: none; }
+    .cal-day.future { opacity: 0.38; pointer-events: none; }
+    .cal-day-num { font-size: 0.82rem; font-weight: 700; line-height: 1; }
+    .cal-day.today .cal-day-num { color: var(--accent); }
+    .cal-dots { display: flex; gap: 2px; justify-content: center; flex-wrap: wrap; }
+    .cal-dot { font-size: 0.7rem; line-height: 1; }
+    .cal-rest-over {
+      position: absolute; inset: 0; display: flex; align-items: center;
+      justify-content: center; font-size: 1rem;
+      background: rgba(10,14,26,0.45); border-radius: calc(var(--radius-sm) - 1px);
+    }
+
+    /* ── DAY DETAIL SHEET ── */
+    .sheet-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      z-index: 300; display: none; align-items: flex-end;
+    }
+    .sheet-backdrop.open { display: flex; }
+    .sheet {
+      background: var(--surface); border-radius: var(--radius) var(--radius) 0 0;
+      width: 100%; padding: 0 18px 32px;
+      padding-bottom: max(32px, env(safe-area-inset-bottom, 32px));
+      max-height: 82vh; overflow-y: auto;
+    }
+    .sheet-handle-wrap { padding: 12px 0 16px; display: flex; justify-content: center; }
+    .sheet-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; }
+    .sheet-date { font-size: 1.1rem; font-weight: 800; margin-bottom: 3px; }
+    .sheet-sched { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 14px; }
+    .sheet-sec { font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.07em; color: var(--text-muted); margin: 14px 0 8px; }
+    .sheet-log-item {
+      background: var(--surface2); border-radius: var(--radius-sm);
+      padding: 10px 13px; margin-bottom: 6px;
+    }
+    .sheet-log-title { font-size: 0.875rem; font-weight: 700; margin-bottom: 2px; }
+    .sheet-log-sub { font-size: 0.78rem; color: var(--text-muted); }
+    .sheet-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+    .sheet-btn {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text); padding: 12px 14px;
+      font-size: 0.9rem; font-weight: 600; cursor: pointer; text-align: left;
+      display: flex; align-items: center; gap: 10px; width: 100%;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .sheet-btn:active { background: var(--border); }
+    .sheet-btn.rest-on {
+      background: rgba(251,191,36,0.1); border-color: rgba(251,191,36,0.35); color: var(--yellow);
+    }
+    .sheet-close {
+      background: none; border: none; color: var(--text-muted); font-size: 0.9rem;
+      width: 100%; padding: 14px; text-align: center; cursor: pointer;
+      -webkit-tap-highlight-color: transparent; margin-top: 4px;
+    }
+
+    /* rest day tile overrides */
+    .day-tile.is-rest::after { content: '😴'; }
   </style>
 </head>
 <body>
@@ -476,6 +565,24 @@
         </div>
       </div>
 
+      <!-- CALENDAR -->
+      <div id="screen-calendar" class="screen">
+        <div class="cal-wrap">
+          <div class="cal-nav">
+            <button class="cal-nav-btn" id="cal-prev-btn" onclick="calPrev()">◀</button>
+            <div class="cal-nav-title" id="cal-title"></div>
+            <button class="cal-nav-btn" id="cal-next-btn" onclick="calNext()">▶</button>
+          </div>
+          <div class="cal-dow-row">
+            <div class="cal-dow">Mon</div><div class="cal-dow">Tue</div>
+            <div class="cal-dow">Wed</div><div class="cal-dow">Thu</div>
+            <div class="cal-dow">Fri</div><div class="cal-dow">Sat</div>
+            <div class="cal-dow">Sun</div>
+          </div>
+          <div id="cal-grid" class="cal-grid"></div>
+        </div>
+      </div>
+
     </div><!-- /main-content -->
 
     <!-- Bottom Nav -->
@@ -483,12 +590,26 @@
       <button class="nav-btn active" id="nav-home" onclick="showScreen('home')">
         <span class="nav-icon">🏠</span><span>Home</span>
       </button>
+      <button class="nav-btn" id="nav-calendar" onclick="showScreen('calendar')">
+        <span class="nav-icon">📅</span><span>Calendar</span>
+      </button>
       <button class="nav-btn" id="nav-progress" onclick="showScreen('progress')">
         <span class="nav-icon">📊</span><span>Progress</span>
       </button>
     </nav>
 
   </div><!-- /view-app -->
+
+  <!-- Day Detail Sheet -->
+  <div id="sheet-backdrop" class="sheet-backdrop" onclick="closeSheetOnBackdrop(event)">
+    <div class="sheet" id="day-sheet">
+      <div class="sheet-handle-wrap"><div class="sheet-handle"></div></div>
+      <div class="sheet-date" id="sheet-date"></div>
+      <div class="sheet-sched" id="sheet-sched"></div>
+      <div id="sheet-body"></div>
+      <button class="sheet-close" onclick="closeDaySheet()">Close</button>
+    </div>
+  </div>
 </div><!-- /app -->
 
 <script>
@@ -499,56 +620,6 @@ const CONFIG = {
   url: 'https://rsmnnixtpsafmtbaffts.supabase.co',
   anonKey: 'sb_publishable_0eNkm9e4SVRd1JahDSW7mg_mrq5vj3X',
 };
-
-// ============================================================
-// SUPABASE SETUP — Run this SQL in your Supabase SQL Editor:
-// ============================================================
-/*
-create table if not exists workout_logs (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references auth.users not null,
-  date date not null,
-  session_type text not null,
-  created_at timestamptz default now()
-);
-
-create table if not exists workout_sets (
-  id uuid primary key default gen_random_uuid(),
-  log_id uuid references workout_logs on delete cascade not null,
-  exercise_name text not null,
-  set_number int not null,
-  weight numeric,
-  reps int,
-  created_at timestamptz default now()
-);
-
-create table if not exists run_logs (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references auth.users not null,
-  date date not null,
-  week_number int not null,
-  intervals_completed int not null,
-  notes text,
-  created_at timestamptz default now()
-);
-
-alter table workout_logs enable row level security;
-alter table workout_sets enable row level security;
-alter table run_logs enable row level security;
-
-create policy "own_workout_logs" on workout_logs
-  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-
-create policy "own_workout_sets" on workout_sets
-  for all using (
-    log_id in (select id from workout_logs where user_id = auth.uid())
-  ) with check (
-    log_id in (select id from workout_logs where user_id = auth.uid())
-  );
-
-create policy "own_run_logs" on run_logs
-  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-*/
 
 // ============================================================
 // EXERCISE DATA
@@ -667,6 +738,21 @@ const WEEK_SCHED = [
 ];
 
 // ============================================================
+// REST DAYS — Run this SQL in Supabase SQL Editor:
+// ============================================================
+/*
+create table if not exists rest_days (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users not null,
+  date date not null,
+  unique(user_id, date)
+);
+alter table rest_days enable row level security;
+create policy "own_rest_days" on rest_days
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+*/
+
+// ============================================================
 // STATE
 // ============================================================
 let db;
@@ -680,6 +766,10 @@ let runState = null;
 let progChart = null;
 let progTab = 'workouts';
 let screenStack = ['home'];
+// Calendar
+let calYear  = new Date().getFullYear();
+let calMonth = new Date().getMonth();  // 0-indexed
+let sheetDate = null;
 
 // ============================================================
 // INIT
@@ -741,6 +831,14 @@ function showScreen(name, push = true) {
     if (push) screenStack = ['home', 'progress'];
     renderProgress();
     const nb = document.getElementById('nav-progress');
+    if (nb) nb.classList.add('active');
+  } else if (name === 'calendar') {
+    backBtn.style.display = 'none';
+    title.textContent = '📅 Calendar';
+    nav.style.display = 'flex';
+    if (push) screenStack = ['home', 'calendar'];
+    renderCalendar();
+    const nb = document.getElementById('nav-calendar');
     if (nb) nb.classList.add('active');
   } else if (name === 'session') {
     backBtn.style.display = 'block';
@@ -833,29 +931,42 @@ async function renderWeekGrid() {
   const wEnd   = dateStr(week[6]);
 
   let logged = new Set();
+  let rested = new Set();
   try {
-    const [wl, rl] = await Promise.all([
+    const [wl, rl, rd] = await Promise.all([
       db.from('workout_logs').select('date').eq('user_id', me.id).gte('date', wStart).lte('date', wEnd),
       db.from('run_logs').select('date').eq('user_id', me.id).gte('date', wStart).lte('date', wEnd),
+      db.from('rest_days').select('date').eq('user_id', me.id).gte('date', wStart).lte('date', wEnd),
     ]);
     (wl.data || []).forEach(r => logged.add(r.date));
     (rl.data || []).forEach(r => logged.add(r.date));
+    (rd.data || []).forEach(r => rested.add(r.date));
   } catch(_) {}
 
   const grid = document.getElementById('week-grid');
   grid.innerHTML = '';
 
   week.forEach((d, i) => {
-    const sched = WEEK_SCHED[i];
-    const ds = dateStr(d);
-    const isToday = ds === today;
-    const hasLog  = logged.has(ds);
+    const sched  = WEEK_SCHED[i];
+    const ds     = dateStr(d);
+    const isToday  = ds === today;
+    const hasLog   = logged.has(ds);
+    const isRest   = rested.has(ds);
+    // rest days count as "done" — show 😴 badge instead of ✅
+    const logClass = isRest ? ' is-rest' : (hasLog ? ' has-log' : '');
 
     const tile = document.createElement('div');
-    tile.className = 'day-tile' + (isToday ? ' today' : '') + (hasLog ? ' has-log' : '');
+    tile.className = 'day-tile' + (isToday ? ' today' : '') + logClass;
 
-    if (sched.tappable === 'fri') {
-      // Friday: two tap chips
+    if (isRest) {
+      // Override: show as rest day regardless of schedule
+      tile.innerHTML = `
+        <span class="day-name">${sched.label}</span>
+        <span class="day-num">${d.getDate()}</span>
+        <span class="day-emoji">😴</span>
+        <span class="day-label">Rest</span>
+      `;
+    } else if (sched.tappable === 'fri') {
       tile.innerHTML = `
         <span class="day-name">${sched.label}</span>
         <span class="day-num">${d.getDate()}</span>
@@ -1524,6 +1635,224 @@ async function renderRunProg() {
       </div>
     `;
   }).join('');
+}
+
+// ============================================================
+// CALENDAR
+// ============================================================
+function calPrev() {
+  calMonth--;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+function calNext() {
+  const now = new Date();
+  if (calYear === now.getFullYear() && calMonth === now.getMonth()) return;
+  calMonth++;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  renderCalendar();
+}
+
+async function renderCalendar() {
+  const now   = new Date();
+  const isCurrentMonth = calYear === now.getFullYear() && calMonth === now.getMonth();
+
+  // Disable next button when on current month
+  const nextBtn = document.getElementById('cal-next-btn');
+  if (nextBtn) nextBtn.disabled = isCurrentMonth;
+
+  const monthStart = new Date(calYear, calMonth, 1);
+  const monthEnd   = new Date(calYear, calMonth + 1, 0);
+  const startStr   = dateStr(monthStart);
+  const endStr     = dateStr(monthEnd);
+
+  document.getElementById('cal-title').textContent =
+    monthStart.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+
+  // Fetch all activity for this month
+  const [wl, rl, rd] = await Promise.all([
+    db.from('workout_logs').select('date, session_type').eq('user_id', me.id).gte('date', startStr).lte('date', endStr),
+    db.from('run_logs').select('date').eq('user_id', me.id).gte('date', startStr).lte('date', endStr),
+    db.from('rest_days').select('date').eq('user_id', me.id).gte('date', startStr).lte('date', endStr),
+  ]);
+
+  const workDates = {};
+  (wl.data || []).forEach(r => {
+    if (!workDates[r.date]) workDates[r.date] = [];
+    workDates[r.date].push(r.session_type);
+  });
+  const runDates  = new Set((rl.data || []).map(r => r.date));
+  const restDates = new Set((rd.data || []).map(r => r.date));
+
+  const todayStr = dateStr(now);
+
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+
+  // Leading blank cells (Mon-based: Mon=0 … Sun=6)
+  const firstDow = (monthStart.getDay() + 6) % 7;
+  for (let i = 0; i < firstDow; i++) {
+    const blank = document.createElement('div');
+    blank.className = 'cal-day other-month';
+    grid.appendChild(blank);
+  }
+
+  const daysInMonth = monthEnd.getDate();
+  for (let day = 1; day <= daysInMonth; day++) {
+    const d  = new Date(calYear, calMonth, day);
+    const ds = dateStr(d);
+    const isFuture = ds > todayStr;
+    const isToday  = ds === todayStr;
+    const isRest   = restDates.has(ds);
+    const hasWork  = !!workDates[ds];
+    const hasRun   = runDates.has(ds);
+
+    const cell = document.createElement('div');
+    cell.className = 'cal-day'
+      + (isToday   ? ' today'       : '')
+      + (isFuture  ? ' future'      : ' tappable');
+
+    let dots = '';
+    if (!isRest) {
+      if (hasWork) dots += `<span class="cal-dot">💪</span>`;
+      if (hasRun)  dots += `<span class="cal-dot">🏃</span>`;
+    }
+
+    cell.innerHTML = `
+      <span class="cal-day-num">${day}</span>
+      <div class="cal-dots">${dots}</div>
+      ${isRest ? '<div class="cal-rest-over">😴</div>' : ''}
+    `;
+
+    if (!isFuture) cell.onclick = () => openDaySheet(ds);
+    grid.appendChild(cell);
+  }
+
+  // Trailing blank cells
+  const totalCells = firstDow + daysInMonth;
+  const trailing = (7 - (totalCells % 7)) % 7;
+  for (let i = 0; i < trailing; i++) {
+    const blank = document.createElement('div');
+    blank.className = 'cal-day other-month';
+    grid.appendChild(blank);
+  }
+}
+
+// ============================================================
+// DAY DETAIL SHEET
+// ============================================================
+async function openDaySheet(ds) {
+  sheetDate = ds;
+
+  const date      = new Date(ds + 'T00:00:00');
+  const dateLabel = date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+  const dow       = (date.getDay() + 6) % 7; // 0=Mon
+  const sched     = WEEK_SCHED[dow];
+  const isPast    = ds <= dateStr(new Date());
+
+  let schedLabel = sched.activity;
+  if (sched.emoji) schedLabel = sched.emoji + ' ' + schedLabel;
+  else if (sched.tappable === 'fri') schedLabel = '🏃 Run + 🏋️ Session B';
+
+  document.getElementById('sheet-date').textContent = dateLabel;
+  document.getElementById('sheet-sched').textContent = 'Scheduled: ' + schedLabel;
+
+  // Fetch logs for this day
+  const [wl, rl, rd] = await Promise.all([
+    db.from('workout_logs').select('id, session_type').eq('user_id', me.id).eq('date', ds),
+    db.from('run_logs').select('*').eq('user_id', me.id).eq('date', ds),
+    db.from('rest_days').select('id').eq('user_id', me.id).eq('date', ds),
+  ]);
+
+  const workLogs = wl.data || [];
+  const runLogs  = rl.data || [];
+  const isRest   = (rd.data || []).length > 0;
+
+  let body = '';
+
+  // Logged activity
+  if (isRest || workLogs.length || runLogs.length) {
+    body += '<div class="sheet-sec">Logged</div>';
+  }
+  if (isRest) {
+    body += `<div class="sheet-log-item">
+      <div class="sheet-log-title">😴 Rest Day</div>
+      <div class="sheet-log-sub">Marked as rest — no workout expected</div>
+    </div>`;
+  }
+  workLogs.forEach(w => {
+    body += `<div class="sheet-log-item">
+      <div class="sheet-log-title">🏋️ Session ${esc(w.session_type)}</div>
+      <div class="sheet-log-sub">Workout logged</div>
+    </div>`;
+  });
+  runLogs.forEach(r => {
+    const prog = RUN_PROGRAM.find(p => p.weeks.includes(r.week_number)) || RUN_PROGRAM[0];
+    body += `<div class="sheet-log-item">
+      <div class="sheet-log-title">🏃 Run — Week ${r.week_number}</div>
+      <div class="sheet-log-sub">${r.intervals_completed}/${prog.rounds} intervals${r.notes ? ' · ' + esc(r.notes) : ''}</div>
+    </div>`;
+  });
+
+  // Actions (only for today/past)
+  if (isPast) {
+    body += '<div class="sheet-sec">Actions</div><div class="sheet-actions">';
+    if (isRest) {
+      body += `<button class="sheet-btn rest-on" onclick="toggleRestDay('${ds}')">↩ Unmark Rest Day</button>`;
+    } else {
+      body += `<button class="sheet-btn" onclick="toggleRestDay('${ds}')">😴 Skip — Mark as Rest Day</button>`;
+      // Schedule-relevant quick-starts
+      if (sched.tappable === 'A') {
+        body += `<button class="sheet-btn" onclick="closeDaySheet();openSession('A')">🏋️ Log Session A</button>`;
+      } else if (sched.tappable === 'fri') {
+        body += `<button class="sheet-btn" onclick="closeDaySheet();openRun()">🏃 Log Run</button>`;
+        body += `<button class="sheet-btn" onclick="closeDaySheet();openSession('B')">🏋️ Log Session B</button>`;
+      } else if (sched.tappable === 'run') {
+        body += `<button class="sheet-btn" onclick="closeDaySheet();openRun()">🏃 Log Run</button>`;
+      } else {
+        // Non-scheduled day — still offer manual logging
+        body += `<button class="sheet-btn" onclick="closeDaySheet();openSession('A')">🏋️ Log Session A</button>`;
+        body += `<button class="sheet-btn" onclick="closeDaySheet();openSession('B')">🏋️ Log Session B</button>`;
+        body += `<button class="sheet-btn" onclick="closeDaySheet();openRun()">🏃 Log Run</button>`;
+      }
+    }
+    body += '</div>';
+  }
+
+  document.getElementById('sheet-body').innerHTML = body;
+  document.getElementById('sheet-backdrop').classList.add('open');
+}
+
+async function toggleRestDay(ds) {
+  const { data: existing } = await db
+    .from('rest_days').select('id').eq('user_id', me.id).eq('date', ds);
+
+  if (existing && existing.length > 0) {
+    await db.from('rest_days').delete().eq('user_id', me.id).eq('date', ds);
+  } else {
+    await db.from('rest_days').insert({ user_id: me.id, date: ds });
+  }
+
+  closeDaySheet();
+  // Refresh whichever screen is visible
+  const calScreen = document.getElementById('screen-calendar');
+  if (calScreen && calScreen.classList.contains('active')) {
+    renderCalendar();
+  }
+  const homeScreen = document.getElementById('screen-home');
+  if (homeScreen && homeScreen.classList.contains('active')) {
+    await renderWeekGrid();
+  }
+}
+
+function closeDaySheet() {
+  document.getElementById('sheet-backdrop').classList.remove('open');
+  sheetDate = null;
+}
+
+function closeSheetOnBackdrop(e) {
+  if (e.target === document.getElementById('sheet-backdrop')) closeDaySheet();
 }
 
 // ============================================================
